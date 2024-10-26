@@ -5,10 +5,13 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.lifecycle.lifecycleScope
 import com.example.tickets.R
 import com.example.tickets.adapter.OfferListAdapter
 import com.example.tickets.databinding.FragmentOfferListBinding
+import com.example.tickets.model.network.ApiClient
 import com.example.tickets.model.service.FakeService
+import kotlinx.coroutines.launch
 
 
 class OfferListFragment : Fragment() {
@@ -38,7 +41,10 @@ class OfferListFragment : Fragment() {
 
         setupUI()
 
-        adapter.setItems(FakeService.offerList)
+        lifecycleScope.launch {
+            val list = ApiClient.getFlights()
+            adapter.setItems(list)
+        }
     }
 
     private fun setupUI() {
@@ -48,17 +54,16 @@ class OfferListFragment : Fragment() {
             sortRadioGroup.setOnCheckedChangeListener { _, checkedId ->
                 when (checkedId) {
                     R.id.sort_by_price -> {
-                        /**
-                         * implement sorting by price
-                         * hint: you can take the current list using getCurrentList method of ListAdapter instance
-                         */
+                        val sortedByPrice = adapter.getCurrentList().sortedBy { it.price }
+                        adapter.setItems(sortedByPrice)
+                        offerList.scrollToPosition(0)
                     }
 
                     R.id.sort_by_duration -> {
-                        /**
-                         * implement sorting by duration
-                         * hint: you can take the current list using getCurrentList method of ListAdapter instance
-                         */
+                        val sortedByDuration =
+                            adapter.getCurrentList().sortedBy { it.flight.duration }
+                        adapter.setItems(sortedByDuration)
+                        offerList.scrollToPosition(0)
                     }
                 }
             }
